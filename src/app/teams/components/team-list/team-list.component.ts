@@ -9,6 +9,7 @@ import { Pokemon } from '../../../pokedex/models/pokemon.model';
 import { PokemonApiService } from '../../../pokedex/services/pokemon-api.service';
 import { SkeletonComponent } from '../../../common/components/skeleton/skeleton.component';
 import { TitleCasePipe } from '@angular/common';
+import { getPokemonSpriteUrl } from '../../../common/constants/app.constants';
 
 @Component({
   selector: 'app-team-list',
@@ -22,6 +23,8 @@ export class TeamListComponent {
   private readonly pokemonApi = inject(PokemonApiService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly spriteUrl = getPokemonSpriteUrl;
+
   readonly teams      = toSignal(this.store.state.pipe(map((s) => s.teams)),    { initialValue: [] as Team[] });
   readonly trainers   = toSignal(this.store.state.pipe(map((s) => s.trainers)), { initialValue: [] });
   readonly loading    = toSignal(this.store.state.pipe(map((s) => s.loading)),  { initialValue: false });
@@ -30,8 +33,8 @@ export class TeamListComponent {
 
   /** Pokémon details for the selected team — fetched once per selection change. */
   readonly selectedTeamPokemon = signal<Pokemon[]>([]);
-  readonly pokemonLoading      = signal(false);
-  readonly pokemonError        = signal<string | null>(null);
+  readonly pokemonLoading = signal(false);
+  readonly pokemonError = signal<string | null>(null);
 
   /**
    * Type distribution for the selected team — e.g. "2 Fire, 2 Water, 1 Grass, 1 Electric".
@@ -77,10 +80,6 @@ export class TeamListComponent {
       if (pokemons !== null) this.selectedTeamPokemon.set(pokemons);
       this.pokemonLoading.set(false);
     });
-  }
-
-  spriteUrl(id: number): string {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
   }
 
   trainerName(trainerId: number): string {

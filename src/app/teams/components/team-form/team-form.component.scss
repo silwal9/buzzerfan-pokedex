@@ -71,24 +71,6 @@
 
   button[type="submit"] {
     margin-top: 12px;
-    padding: 12px 16px;
-    background: var(--color-primary);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: opacity 0.2s;
-
-    &:hover:not(:disabled) {
-      opacity: 0.9;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
   }
 }
 

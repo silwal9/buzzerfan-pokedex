@@ -137,7 +137,9 @@ export class PokemonStore {
 
   private executeCombinedFilter(name: string, type: string, limit: number, offset: number): void {
     this.patch({ loading: true, error: null });
-    this.api.getFilteredPokemons$(name || undefined, type || undefined, limit, offset).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.api.searchPokemons$(name, limit, offset, type || undefined).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (searchResults) => this.patch({ loading: false, searchResults }),
       error: (err: Error) => this.patch({ loading: false, error: err.message || 'Filter failed' }),
     });

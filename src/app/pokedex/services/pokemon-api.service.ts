@@ -1,10 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, retry } from 'rxjs';
 import { GraphqlService } from '../../core/services/graphql.service';
-import { POKEAPI_GRAPHQL_URL, RETRY_COUNT, RETRY_DELAY_MS } from '../../common/constants/app.constants';
+import {
+  POKEAPI_GRAPHQL_URL,
+  RETRY_COUNT,
+  RETRY_DELAY_MS,
+  getPokemonSpriteUrl,
+} from '../../common/constants/app.constants';
 import { Pokemon, PokemonDetail, RawAbility, RawPokemon } from '../models/pokemon.model';
-
-const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
 
 function mapRawPokemon(raw: RawPokemon): Pokemon {
   const statsMap: Record<string, number> = {};
@@ -25,7 +28,7 @@ function mapRawPokemon(raw: RawPokemon): Pokemon {
     weight: raw.weight,
     types: raw.pokemon_v2_pokemontypes.map((t) => t.pokemon_v2_type.name),
     stats: { hp, attack, defense, spAtk, spDef, speed, total: hp + attack + defense + spAtk + spDef + speed },
-    spriteUrl: `${SPRITE_BASE}/${raw.id}.png`,
+    spriteUrl: getPokemonSpriteUrl(raw.id),
   };
 }
 
@@ -56,7 +59,7 @@ export class PokemonApiService {
     }
   `;
 
-  /** Fetches a page of Pokémon. Retries up to RETRY_COUNT times on failure. */
+  /** Fetches a page of Pokémon (Task §GraphQL APIs query). Retries up to RETRY_COUNT times on failure. */
   getPokemons$(limit: number, offset: number): Observable<Pokemon[]> {
     const query = `
       query GetPokemon($limit: Int, $offset: Int) {
@@ -71,8 +74,8 @@ export class PokemonApiService {
       );
   }
 
-  /** Searches and/or filters Pokémon simultaneously. Retries on failure. */
-  getFilteredPokemons$(name?: string, type?: string, limit = 50, offset = 0): Observable<Pokemon[]> {
+  /** Searches by name and/or filters by type. Retries on failure. */
+  searchPokemons$(name: string, limit = 50, offset = 0, type?: string): Observable<Pokemon[]> {
     const whereConditions: Record<string, any> = {};
     if (name) {
       whereConditions['name'] = { _ilike: `%${name}%` };
@@ -84,7 +87,7 @@ export class PokemonApiService {
     }
 
     const query = `
-      query GetFilteredPokemons($where: pokemon_v2_pokemon_bool_exp, $limit: Int, $offset: Int) {
+      query SearchPokemon($where: pokemon_v2_pokemon_bool_exp, $limit: Int, $offset: Int) {
         pokemon_v2_pokemon(where: $where, limit: $limit, offset: $offset) { ${this.pokemonFields} }
       }
     `;
@@ -101,14 +104,9 @@ export class PokemonApiService {
       );
   }
 
-  /** Searches Pokémon by name (case-insensitive). Retries on failure. */
-  searchPokemons$(name: string, limit = 50): Observable<Pokemon[]> {
-    return this.getFilteredPokemons$(name, undefined, limit);
-  }
-
-  /** Filters Pokémon by type. Retries on failure. */
-  filterByType$(type: string, limit: number, offset: number): Observable<Pokemon[]> {
-    return this.getFilteredPokemons$(undefined, type, limit, offset);
+  /** Filters by type with pagination. Retries on failure. */
+  filterByType$(type: string, limit = 50, offset = 0): Observable<Pokemon[]> {
+    return this.searchPokemons$('', limit, offset, type);
   }
 
   /** Fetches the total Pokémon count once (for the paginator). */
