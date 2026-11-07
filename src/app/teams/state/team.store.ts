@@ -5,6 +5,7 @@ import { BehaviorSubject } from 'rxjs';
 import { OptimisticCreatePayload, TeamState } from '../models/team-state.model';
 import { TeamApiService } from '../services/team-api.service';
 import { applyOptimisticCreate, buildOptimisticTeam } from '../utils/team-optimistic.utils';
+import { getFriendlyErrorMessage } from '../../common/utils/error.utils';
 
 export { applyOptimisticCreate, buildOptimisticTeam };
 export type { OptimisticCreatePayload, TeamState };
@@ -43,7 +44,7 @@ export class TeamStore {
     this.patch({ loading: true, error: null });
     this.api.getTeams$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (teams) => this.patch({ teams, loading: false }),
-      error: (err: Error) => this.patch({ loading: false, error: err.message || 'Failed to load teams. Is the mock server running?' }),
+      error: (err: unknown) => this.patch({ loading: false, error: getFriendlyErrorMessage(err, 'Failed to load teams. Is the mock server running on port 4000?') }),
     });
   }
 

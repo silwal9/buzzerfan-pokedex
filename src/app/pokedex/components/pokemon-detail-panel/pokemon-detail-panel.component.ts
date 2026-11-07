@@ -12,6 +12,7 @@ import { PokemonApiService } from '../../services/pokemon-api.service';
 import { Pokemon, PokemonDetail } from '../../models/pokemon.model';
 import { SkeletonComponent } from '../../../common/components/skeleton/skeleton.component';
 import { TypeBadgeComponent } from '../../../common/components/type-badge/type-badge.component';
+import { getFriendlyErrorMessage } from '../../../common/utils/error.utils';
 
 @Component({
   selector: 'app-pokemon-detail-panel',
@@ -87,7 +88,7 @@ export class PokemonDetailPanelComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (abs) => { this.abilities.set(abs); this.abilitiesLoading.set(false); },
-      error: (err: Error) => { this.abilitiesError.set(err.message); this.abilitiesLoading.set(false); },
+      error: (err: unknown) => { this.abilitiesError.set(getFriendlyErrorMessage(err, 'Failed to load abilities. Please try again.')); this.abilitiesLoading.set(false); },
     });
   }
 
@@ -99,8 +100,8 @@ export class PokemonDetailPanelComponent implements OnInit {
         this.abilitiesLoading.set(true);
         this.abilitiesError.set(null);
         return this.api.getAbilities$(p.id).pipe(
-          catchError((err: Error) => {
-            this.abilitiesError.set(err.message || 'Failed to load abilities');
+          catchError((err: unknown) => {
+            this.abilitiesError.set(getFriendlyErrorMessage(err, 'Failed to load abilities. Please try again.'));
             return of(null);
           }),
         );

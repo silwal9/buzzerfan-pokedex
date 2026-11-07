@@ -10,6 +10,7 @@ import { PokemonApiService } from '../../../pokedex/services/pokemon-api.service
 import { SkeletonComponent } from '../../../common/components/skeleton/skeleton.component';
 import { TitleCasePipe } from '@angular/common';
 import { getPokemonSpriteUrl } from '../../../common/constants/app.constants';
+import { getFriendlyErrorMessage } from '../../../common/utils/error.utils';
 
 @Component({
   selector: 'app-team-list',
@@ -94,7 +95,7 @@ export class TeamListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: (pokemons) => { this.selectedTeamPokemon.set(pokemons); this.pokemonLoading.set(false); },
-      error: (err: Error) => { this.pokemonError.set(err.message || 'Failed to load Pokémon details'); this.pokemonLoading.set(false); },
+      error: (err: unknown) => { this.pokemonError.set(getFriendlyErrorMessage(err, 'Failed to load Pokémon details.')); this.pokemonLoading.set(false); },
     });
   }
 
@@ -107,8 +108,8 @@ export class TeamListComponent implements OnInit {
         this.pokemonLoading.set(true);
         this.pokemonError.set(null);
         return this.pokemonApi.getPokemonsByIds$(team.pokemon_ids).pipe(
-          catchError((err: Error) => {
-            this.pokemonError.set(err.message || 'Failed to load Pokémon details');
+          catchError((err: unknown) => {
+            this.pokemonError.set(getFriendlyErrorMessage(err, 'Failed to load Pokémon details.'));
             return of(null);
           }),
         );

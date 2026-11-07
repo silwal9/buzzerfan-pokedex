@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { DEFAULT_PAGE_SIZE } from '../../common/constants/app.constants';
 import { PokemonState, SortDirection, SortField } from '../models/pokemon-state.model';
 import { PokemonApiService } from '../services/pokemon-api.service';
+import { getFriendlyErrorMessage } from '../../common/utils/error.utils';
 
 export type { PokemonState, SortDirection, SortField };
 
@@ -71,7 +72,7 @@ export class PokemonStore {
         cache.set(cacheKey, pokemons);
         this.patch({ cache, loading: false });
       },
-      error: (err: Error) => this.patch({ loading: false, error: err.message || 'Failed to load Pokémon' }),
+      error: (err: unknown) => this.patch({ loading: false, error: getFriendlyErrorMessage(err, 'Failed to load Pokémon. Please try again.') }),
     });
   }
 
@@ -124,7 +125,7 @@ export class PokemonStore {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (searchResults) => this.patch({ loading: false, searchResults }),
-      error: (err: Error) => this.patch({ loading: false, error: err.message || 'Filter failed' }),
+      error: (err: unknown) => this.patch({ loading: false, error: getFriendlyErrorMessage(err, 'Filter failed. Please try again.') }),
     });
   }
 }
