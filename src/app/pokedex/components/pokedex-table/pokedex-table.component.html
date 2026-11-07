@@ -4,16 +4,24 @@
   <div class="pokedex-table__filters">
     <input class="pokedex-table__search"
            type="text"
+           [value]="search()"
            placeholder="Search Pokémon…"
            (input)="onSearch($any($event.target).value)" />
 
     <select class="pokedex-table__type-filter"
+            [value]="typeFilter()"
             (change)="onTypeFilter($any($event.target).value)">
       <option value="">All types</option>
       @for (type of pokemonTypes; track type) {
         <option [value]="type">{{ type | titlecase }}</option>
       }
     </select>
+
+    @if (search() || typeFilter()) {
+      <button class="pokedex-table__clear-btn" (click)="onClearFilters()">
+        ✕ Clear Filters
+      </button>
+    }
   </div>
 
   <!-- Loading state -->

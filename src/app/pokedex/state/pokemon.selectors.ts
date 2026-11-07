@@ -50,6 +50,8 @@ export class PokemonSelectors {
   readonly totalCount$ = this.state$.pipe(map((s) => s.totalCount), distinctUntilChanged(), shareReplay(1));
   readonly page$      = this.state$.pipe(map((s) => s.page), distinctUntilChanged());
   readonly pageSize$  = this.state$.pipe(map((s) => s.pageSize), distinctUntilChanged());
+  readonly search$    = this.state$.pipe(map((s) => s.search), distinctUntilChanged());
+  readonly typeFilter$ = this.state$.pipe(map((s) => s.typeFilter), distinctUntilChanged());
 
   readonly isEmpty$ = combineLatest([this.sortedPokemons$, this.loading$, this.error$]).pipe(
     map(([pokemons, loading, error]) => !loading && !error && pokemons.length === 0),

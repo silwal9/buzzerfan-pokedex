@@ -71,37 +71,44 @@ export class PokemonApiService {
       );
   }
 
-  /** Searches Pokémon by name (case-insensitive). Retries on failure. */
-  searchPokemons$(name: string, limit = 50): Observable<Pokemon[]> {
+  /** Searches and/or filters Pokémon simultaneously. Retries on failure. */
+  getFilteredPokemons$(name?: string, type?: string, limit = 50, offset = 0): Observable<Pokemon[]> {
+    const whereConditions: Record<string, any> = {};
+    if (name) {
+      whereConditions['name'] = { _ilike: `%${name}%` };
+    }
+    if (type) {
+      whereConditions['pokemon_v2_pokemontypes'] = {
+        pokemon_v2_type: { name: { _eq: type } },
+      };
+    }
+
     const query = `
-      query SearchPokemon($name: String, $limit: Int) {
-        pokemon_v2_pokemon(where: { name: { _ilike: $name } }, limit: $limit) { ${this.pokemonFields} }
+      query GetFilteredPokemons($where: pokemon_v2_pokemon_bool_exp, $limit: Int, $offset: Int) {
+        pokemon_v2_pokemon(where: $where, limit: $limit, offset: $offset) { ${this.pokemonFields} }
       }
     `;
+
     return this.gql
-      .query<{ pokemon_v2_pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, { name: `%${name}%`, limit })
+      .query<{ pokemon_v2_pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, {
+        where: whereConditions,
+        limit,
+        offset,
+      })
       .pipe(
         retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
         map((data) => data.pokemon_v2_pokemon.map(mapRawPokemon)),
       );
   }
 
+  /** Searches Pokémon by name (case-insensitive). Retries on failure. */
+  searchPokemons$(name: string, limit = 50): Observable<Pokemon[]> {
+    return this.getFilteredPokemons$(name, undefined, limit);
+  }
+
   /** Filters Pokémon by type. Retries on failure. */
   filterByType$(type: string, limit: number, offset: number): Observable<Pokemon[]> {
-    const query = `
-      query FilterByType($type: String, $limit: Int, $offset: Int) {
-        pokemon_v2_pokemon(
-          where: { pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _eq: $type } } } }
-          limit: $limit, offset: $offset
-        ) { ${this.pokemonFields} }
-      }
-    `;
-    return this.gql
-      .query<{ pokemon_v2_pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, { type, limit, offset })
-      .pipe(
-        retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
-        map((data) => data.pokemon_v2_pokemon.map(mapRawPokemon)),
-      );
+    return this.getFilteredPokemons$(undefined, type, limit, offset);
   }
 
   /** Fetches the total Pokémon count once (for the paginator). */

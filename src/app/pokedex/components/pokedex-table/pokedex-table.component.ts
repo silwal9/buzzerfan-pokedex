@@ -62,6 +62,8 @@ export class PokedexTableComponent implements OnInit {
   readonly totalCount = toSignal(this.selectors.totalCount$, { initialValue: 0 });
   readonly page = toSignal(this.selectors.page$, { initialValue: 0 });
   readonly pageSize = toSignal(this.selectors.pageSize$, { initialValue: 10 });
+  readonly search = toSignal(this.selectors.search$, { initialValue: '' });
+  readonly typeFilter = toSignal(this.selectors.typeFilter$, { initialValue: '' });
   readonly isEmpty = toSignal(this.selectors.isEmpty$, { initialValue: false });
 
   private readonly searchInput$ = new Subject<string>();
@@ -81,6 +83,10 @@ export class PokedexTableComponent implements OnInit {
 
   onTypeFilter(type: string): void { 
     this.store.setTypeFilter(type);
+  }
+
+  onClearFilters(): void {
+    this.store.clearFilters();
   }
 
   onSort(sort: Sort): void { 
