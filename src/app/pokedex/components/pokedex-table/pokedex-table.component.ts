@@ -13,6 +13,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { PAGE_SIZE_OPTIONS } from '../../../common/constants/app.constants';
+import { TypeBadgeComponent } from '../../../common/components/type-badge/type-badge.component';
+import { TitleCasePipe } from '@angular/common';
 
 @Component({
   selector: 'app-pokedex-table',
@@ -21,6 +23,8 @@ import { PAGE_SIZE_OPTIONS } from '../../../common/constants/app.constants';
     MatTableModule,
     MatSortModule,
     MatPaginatorModule,
+    TypeBadgeComponent,
+    TitleCasePipe,
   ],
   templateUrl: './pokedex-table.component.html',
   styleUrl: './pokedex-table.component.scss',
@@ -30,6 +34,21 @@ export class PokedexTableComponent implements OnInit {
   private readonly store     = inject(PokemonStore);
   private readonly selectors = inject(PokemonSelectors);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly statColumns = [
+    { key: 'hp', label: 'HP' }, 
+    { key: 'attack', label: 'Attack' },
+    { key: 'defense', label: 'Defense' }, 
+    { key: 'spAtk', label: 'Sp.Atk' },
+    { key: 'spDef', label: 'Sp.Def' }, 
+    { key: 'speed', label: 'Speed' },
+    { key: 'total', label: 'Total' },
+  ];
+
+  readonly pokemonTypes = [
+    'fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'dark',
+    'fighting', 'poison', 'ground', 'flying', 'bug', 'rock', 'ghost', 'steel', 'normal', 'fairy',
+  ];
 
   readonly pokemonSelected = output<Pokemon>();
 

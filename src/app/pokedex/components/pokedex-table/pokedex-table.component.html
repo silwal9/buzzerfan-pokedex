@@ -1,4 +1,22 @@
 <div class="pokedex-table">
+
+  <!-- Filters row -->
+  <div class="pokedex-table__filters">
+    <input class="pokedex-table__search"
+           type="text"
+           placeholder="Search Pokémon…"
+           (input)="onSearch($any($event.target).value)" />
+
+    <select class="pokedex-table__type-filter"
+            (change)="onTypeFilter($any($event.target).value)">
+      <option value="">All types</option>
+      @for (type of pokemonTypes; track type) {
+        <option [value]="type">{{ type | titlecase }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Loading state -->
   @if (loading()) {
     <div class="pokedex-table__skeleton-rows">
       @for (row of [1,2,3,4,5,6,7,8,9,10]; track row) {
@@ -11,4 +29,67 @@
       }
     </div>
   }
+
+  <!-- Error state -->
+  @if (error() && !loading()) {
+    <div class="pokedex-table__state-msg pokedex-table__state-msg--error">
+      <p>{{ error() }}</p>
+      <button class="pokedex-table__retry-btn" (click)="retry()">Retry</button>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (isEmpty() && !loading()) {
+    <div class="pokedex-table__state-msg">
+      <p>No Pokémon found. Try a different search or filter.</p>
+    </div>
+  }
+
+  <!-- Success state -->
+  @if (!loading() && !error() && pokemons().length > 0) {
+    <table mat-table [dataSource]="pokemons()" matSort (matSortChange)="onSort($event)"
+           class="pokedex-table__mat-table">
+
+      <ng-container matColumnDef="sprite">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let p">
+          <img [src]="p.spriteUrl" [alt]="p.name" width="40" height="40" />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let p" class="pokedex-table__name">{{ p.name | titlecase }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="types">
+        <th mat-header-cell *matHeaderCellDef>Types</th>
+        <td mat-cell *matCellDef="let p">
+          @for (type of p.types; track type) {
+            <app-type-badge [typeName]="type" />
+          }
+        </td>
+      </ng-container>
+
+      @for (col of statColumns; track col.key) {
+        <ng-container [matColumnDef]="col.key">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ col.label }}</th>
+          <td mat-cell *matCellDef="let p">{{ p.stats[col.key] }}</td>
+        </ng-container>
+      }
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          class="pokedex-table__row"
+          (click)="onRowClick(row)"></tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalCount()"
+      [pageIndex]="page()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPage($event)" />
+  }
+
 </div>
