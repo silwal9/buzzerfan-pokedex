@@ -49,6 +49,23 @@ export class PokemonDetailPanelComponent implements OnInit {
   readonly radarOption = computed<EChartsOption>(() => {
     const p = this.pokemon();
     return {
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#1e2121',
+        borderColor: '#3a3a3a',
+        textStyle: { color: '#ffffff', fontSize: 12 },
+        formatter: () => {
+          return `
+            <strong>${p.name.toUpperCase()}</strong><br/>
+            HP: ${p.stats.hp}<br/>
+            Attack: ${p.stats.attack}<br/>
+            Defense: ${p.stats.defense}<br/>
+            Sp.Atk: ${p.stats.spAtk}<br/>
+            Sp.Def: ${p.stats.spDef}<br/>
+            Speed: ${p.stats.speed}
+          `;
+        },
+      },
       radar: {
         indicator: [
           { name: 'HP',      max: 255 },
@@ -58,6 +75,25 @@ export class PokemonDetailPanelComponent implements OnInit {
           { name: 'Sp.Def', max: 255 },
           { name: 'Speed',  max: 255 },
         ],
+        axisName: {
+          color: '#9e9e9e',
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.1)',
+          },
+        },
+        splitArea: {
+          areaStyle: {
+            color: ['rgba(255, 255, 255, 0.02)', 'rgba(255, 255, 255, 0.04)'],
+          },
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       series: [{
         type: 'radar',
@@ -71,6 +107,16 @@ export class PokemonDetailPanelComponent implements OnInit {
             p.stats.speed
           ],
           name: p.name,
+          areaStyle: {
+            color: 'rgba(229, 57, 53, 0.35)',
+          },
+          lineStyle: {
+            color: '#e53935',
+            width: 2,
+          },
+          itemStyle: {
+            color: '#ff6f60',
+          },
         }],
       }],
     };
