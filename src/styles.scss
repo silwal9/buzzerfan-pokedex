@@ -145,4 +145,27 @@ a {
 .mat-mdc-paginator {
   background: transparent !important;
   color: #fff !important;
+
+  .mat-mdc-paginator-range-label,
+  .mat-mdc-paginator-page-size-label {
+    color: var(--color-text-muted) !important;
+  }
+
+  .mat-mdc-paginator-navigation-next,
+  .mat-mdc-paginator-navigation-previous,
+  .mat-mdc-paginator-navigation-first,
+  .mat-mdc-paginator-navigation-last {
+    color: #ffffff !important;
+
+    svg {
+      fill: #ffffff !important;
+    }
+
+    &:disabled {
+      color: rgba(255, 255, 255, 0.25) !important;
+      svg {
+        fill: rgba(255, 255, 255, 0.25) !important;
+      }
+    }
+  }
 }

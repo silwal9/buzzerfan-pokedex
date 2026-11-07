@@ -1,5 +1,22 @@
+:host {
+  display: block;
+  height: 100%;
+  flex-shrink: 0;
+
+  @media (max-width: 900px) {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 440px;
+    z-index: 100;
+  }
+}
+
 .detail-panel {
   width: 400px;
+  max-width: 100%;
   flex-shrink: 0;
   height: 100%;
   background: var(--color-surface-2);
@@ -9,6 +26,12 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    box-shadow: -6px 0 28px rgba(0, 0, 0, 0.7);
+  }
 
   &__header {
     position: relative;
