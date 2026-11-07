@@ -1,4 +1,4 @@
-<form class="team-form" [formGroup]="form" (ngSubmit)="submit()">
+<form class="team-form" [formGroup]="form" #formDirective="ngForm" (ngSubmit)="submit(formDirective)">
   <h2 class="team-form__title">New Team</h2>
 
   <!-- Team name -->

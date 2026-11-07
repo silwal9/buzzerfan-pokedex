@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
-  FormControl, FormGroup, ReactiveFormsModule, Validators,
+  FormControl, FormGroup, FormGroupDirective, ReactiveFormsModule, Validators,
 } from '@angular/forms';
 import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -108,13 +108,14 @@ export class TeamFormComponent implements OnInit {
     this.selectedPokemon.update((list) => list.filter((p) => p.id !== id));
   }
 
-  submit(): void {
+  submit(formDirective?: FormGroupDirective): void {
     if (this.form.invalid) return;
     if (this.selectedPokemon().length < 1) return;
 
     const { name, trainer_id } = this.form.value;
     this.store.createTeam(name!, trainer_id!, this.selectedPokemon().map((p) => p.id));
 
+    formDirective?.resetForm();
     this.form.reset();
     this.selectedPokemon.set([]);
     this.hasSearched.set(false);
