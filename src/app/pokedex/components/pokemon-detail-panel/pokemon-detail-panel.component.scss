@@ -1,8 +1,117 @@
 .detail-panel {
+  width: 400px;
+  flex-shrink: 0;
+  height: 100%;
+  background: var(--color-surface-2);
+  border-left: 1px solid var(--color-border);
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+
+  &__close {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  &__types {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__chart {
+    height: 280px;
+    width: 100%;
+  }
+
+  &__abilities {
+    border-top: 1px solid var(--color-border);
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__ability {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--color-border);
+
+    p {
+      margin: 4px 0 0 0;
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+  }
+
   &__ability-name {
     display: block;
     font-weight: 600;
     text-transform: capitalize;
-    margin-bottom: 4px;
+  }
+
+  &__error {
+    color: var(--color-danger);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  &__retry-btn {
+    padding: 6px 12px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-start;
+  }
+
+  &__empty {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin: 0;
   }
 }

@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 :root {
   // Surface and background tokens — from DEVELOPER_GUIDE.md §Design Tokens
@@ -38,4 +39,110 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+// Angular Material dark theme adjustments
+.mat-mdc-form-field {
+  width: 100%;
+  margin-bottom: 12px;
+
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--color-surface-2) !important;
+  }
+
+  .mat-mdc-input-element,
+  .mat-mdc-select-value,
+  .mat-mdc-select-arrow {
+    color: #ffffff !important;
+  }
+
+  input::placeholder {
+    color: #9e9e9e !important;
+    opacity: 1 !important;
+  }
+
+  .mat-mdc-floating-label {
+    color: var(--color-text-muted) !important;
+  }
+
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: var(--color-border) !important;
+  }
+
+  &.mat-focused {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: var(--color-primary) !important;
+    }
+    .mat-mdc-floating-label {
+      color: var(--color-primary) !important;
+    }
+  }
+
+  &.mat-form-field-invalid {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: var(--color-danger) !important;
+    }
+    .mat-mdc-floating-label {
+      color: var(--color-danger) !important;
+    }
+  }
+
+  mat-error {
+    color: var(--color-danger) !important;
+    font-size: 0.8rem;
+  }
+}
+
+
+
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border);
+  color: #fff !important;
+}
+
+.mat-mdc-option {
+  color: #fff !important;
+  &:hover:not(.mdc-list-item--disabled) {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+}
+
+.mat-mdc-table {
+  background: transparent !important;
+}
+
+// Chips global theme overrides for dark mode
+.mat-mdc-chip-row {
+  --mdc-chip-label-text-color: #ffffff !important;
+  --mdc-chip-elevated-container-color: var(--color-surface-2) !important;
+  color: #ffffff !important;
+
+  .mdc-evolution-chip__text-label {
+    color: #ffffff !important;
+    font-weight: 500;
+  }
+}
+
+.mat-mdc-header-cell {
+  color: var(--color-text-muted) !important;
+  font-weight: 600;
+  border-bottom-color: var(--color-border) !important;
+}
+
+.mat-mdc-cell {
+  color: #fff !important;
+  border-bottom-color: var(--color-border) !important;
+}
+
+.mat-mdc-paginator {
+  background: transparent !important;
+  color: #fff !important;
 }

@@ -5,19 +5,17 @@
   <mat-form-field appearance="outline">
     <mat-label>Team name</mat-label>
     <input matInput formControlName="name" />
-    @if (nameCtrl.dirty || nameCtrl.touched) {
-      @if (nameCtrl.hasError('required'))   { 
-        <mat-error>Name is required</mat-error> 
-      }
-      @if (nameCtrl.hasError('minlength'))  { 
-        <mat-error>Minimum 3 characters</mat-error> 
-      }
-      @if (nameCtrl.hasError('maxlength'))  { 
-        <mat-error>Maximum 30 characters</mat-error> 
-      }
-      @if (nameCtrl.hasError('nameTaken')) { 
-        <mat-error>This name is already taken</mat-error> 
-      }
+    @if (nameCtrl.hasError('required')) {
+      <mat-error>Name is required</mat-error>
+    }
+    @if (nameCtrl.hasError('minlength')) {
+      <mat-error>Minimum 3 characters</mat-error>
+    }
+    @if (nameCtrl.hasError('maxlength')) {
+      <mat-error>Maximum 30 characters</mat-error>
+    }
+    @if (nameCtrl.hasError('nameTaken')) {
+      <mat-error>This name is already taken</mat-error>
     }
   </mat-form-field>
 
@@ -35,10 +33,11 @@
   <mat-form-field appearance="outline">
     <mat-label>Add Pokémon ({{ selectedPokemon().length }}/6)</mat-label>
     <input matInput
+           #autoInput
            [matAutocomplete]="auto"
            (input)="onAutocompleteInput($any($event.target).value)"
-           placeholder="Search Pokémon…" />
-    <mat-autocomplete #auto (optionSelected)="addPokemon($event.option.value)">
+    />
+    <mat-autocomplete #auto (optionSelected)="addPokemon($event.option.value); autoInput.value = ''">
       <!-- Loading state -->
       @if (autocompleteLoading()) {
         <mat-option disabled>Searching…</mat-option>
@@ -63,11 +62,11 @@
   <!-- Selected Pokémon chips -->
   <mat-chip-set class="team-form__chips">
     @for (p of selectedPokemon(); track p.id) {
-      <mat-chip (removed)="removePokemon(p.id)">
-        <img [src]="p.spriteUrl" [alt]="p.name" width="20" height="20" />
-        {{ p.name | titlecase }}
-        <button matChipRemove>✕</button>
-      </mat-chip>
+      <mat-chip-row (removed)="removePokemon(p.id)">
+        <img matChipAvatar [src]="p.spriteUrl" [alt]="p.name" />
+        <span>{{ p.name | titlecase }}</span>
+        <button matChipRemove aria-label="Remove Pokémon">✕</button>
+      </mat-chip-row>
     }
   </mat-chip-set>
 
