@@ -36,10 +36,24 @@ export class PokemonApiService {
   private readonly gql = inject(GraphqlService);
 
   private readonly pokemonFields = `
-    id name height weight
-    pokemon_v2_pokemontypes { pokemon_v2_type { name } }
-    pokemon_v2_pokemonstats { base_stat pokemon_v2_stat { name } }
-    pokemon_v2_pokemonsprites { sprites }
+    id 
+    name 
+    height 
+    weight
+    pokemon_v2_pokemontypes { 
+      pokemon_v2_type { 
+        name 
+      } 
+    }
+    pokemon_v2_pokemonstats { 
+      base_stat 
+      pokemon_v2_stat { 
+        name 
+      } 
+    }
+    pokemon_v2_pokemonsprites { 
+      sprites 
+    }
   `;
 
   /** Fetches a page of Pokémon. Retries up to RETRY_COUNT times on failure. */
@@ -129,6 +143,25 @@ export class PokemonApiService {
             isHidden: a.is_hidden,
           })),
         ),
+      );
+  }
+
+  /** Fetches a set of Pokémon by their IDs in one query — used by the team expanded view. */
+  getPokemonsByIds$(ids: number[]): Observable<Pokemon[]> {
+    const query = `
+      query GetPokemonsByIds($ids: [Int!]) {
+        pokemon_v2_pokemon(where: {
+          id: { _in: $ids }
+        }) {
+          ${this.pokemonFields}
+        }
+      }
+    `;
+    return this.gql
+      .query<{ pokemon_v2_pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, { ids })
+      .pipe(
+        retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
+        map((data) => data.pokemon_v2_pokemon.map(mapRawPokemon)),
       );
   }
 }

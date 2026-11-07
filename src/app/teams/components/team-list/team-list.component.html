@@ -1,0 +1,84 @@
+<div class="team-list">
+  <h2 class="team-list__title">My Teams</h2>
+
+  @if (loading()) {
+    @for (i of [1,2,3]; track i) {
+      <div class="team-list__skeleton-card">
+        <app-skeleton height="80px" />
+      </div>
+    }
+  }
+
+  @if (error() && !loading()) {
+    <div class="team-list__state-msg">
+      <p>{{ error() }}</p>
+      <button (click)="retry()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !error() && teams().length === 0) {
+    <p class="team-list__state-msg">No teams yet. Create one using the form.</p>
+  }
+
+  @if (!loading() && !error() && teams().length > 0) {
+    @for (team of teams(); track team.id) {
+      <div class="team-list__card"
+           [class.team-list__card--selected]="selectedId() === team.id"
+           [class.team-list__card--optimistic]="team.optimistic"
+           (click)="selectTeam(team)">
+
+        <div class="team-list__card-header">
+          <span class="team-list__name">{{ team.name }}</span>
+          <span class="team-list__trainer">{{ trainerName(team.trainer_id) }}</span>
+          <button class="team-list__delete"
+                  (click)="deleteTeam($event, team.id)"
+                  [disabled]="team.optimistic">
+            Delete
+          </button>
+        </div>
+
+        <!-- Compact: sprite thumbnails built from ID — no API call -->
+        <div class="team-list__sprites">
+          @for (id of team.pokemon_ids; track id) {
+            <img [src]="spriteUrl(id)" [alt]="'Pokémon ' + id" width="40" height="40" />
+          }
+        </div>
+
+        <!-- Expanded view: only rendered for the selected team -->
+        @if (selectedId() === team.id) {
+          <div class="team-list__expanded">
+            <!-- Loading state -->
+            @if (pokemonLoading()) {
+              <app-skeleton height="56px" />
+            }
+            <!-- Error state with Retry -->
+            @if (pokemonError() && !pokemonLoading()) {
+              <p class="team-list__expanded-error">{{ pokemonError() }}</p>
+              <button (click)="retryExpandedView()">Retry</button>
+            }
+            <!-- Empty state — team exists but has no Pokémon data (e.g. empty pokemon_ids) -->
+            @if (!pokemonLoading() && !pokemonError() && selectedTeamPokemon().length === 0) {
+              <p class="team-list__expanded-empty">No Pokémon in this team.</p>
+            }
+            <!-- Success state -->
+            @if (!pokemonLoading() && !pokemonError() && selectedTeamPokemon().length > 0) {
+              <div class="team-list__pokemon-details">
+                @for (p of selectedTeamPokemon(); track p.id) {
+                  <div class="team-list__pokemon-item">
+                    <img [src]="p.spriteUrl" [alt]="p.name" width="48" height="48" />
+                    <span class="team-list__pokemon-name">{{ p.name | titlecase }}</span>
+                  </div>
+                }
+              </div>
+              <div class="team-list__computed">
+                <p><span class="team-list__stat-label">Types:</span> {{ typeDistribution() }}</p>
+                <p><span class="team-list__stat-label">Total base stats:</span> {{ totalBaseStats() }}</p>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    }
+  }
+</div>

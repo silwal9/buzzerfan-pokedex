@@ -7,11 +7,11 @@ export const routes: Routes = [
         loadComponent: () =>
             import('./pokedex/pokedex.component').then((m) => m.PokedexComponent)
     },
-    // {
-    //     path: 'teams',
-    //     loadComponent: () =>
-    //         import('./teams/teams.component').then((m) => m.TeamsComponent)
-    // },
+    {
+        path: 'teams',
+        loadComponent: () =>
+            import('./teams/teams.component').then((m) => m.TeamsComponent)
+    },
     {
         path: '**',
         redirectTo: '/pokedex',
