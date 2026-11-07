@@ -65,28 +65,33 @@ a {
     color: var(--color-text-muted) !important;
   }
 
+  // Default border
   .mdc-notched-outline__leading,
   .mdc-notched-outline__notch,
   .mdc-notched-outline__trailing {
     border-color: var(--color-border) !important;
   }
 
-  &.mat-focused {
+  // Focused state — clean blue/primary-light accent so it is clearly distinct from red error state
+  &.mat-focused:not(.mat-form-field-invalid) {
     .mdc-notched-outline__leading,
     .mdc-notched-outline__notch,
     .mdc-notched-outline__trailing {
-      border-color: var(--color-primary) !important;
+      border-color: #3b82f6 !important;
+      border-width: 2px !important;
     }
     .mat-mdc-floating-label {
-      color: var(--color-primary) !important;
+      color: #60a5fa !important;
     }
   }
 
+  // Invalid state — distinct crimson red
   &.mat-form-field-invalid {
     .mdc-notched-outline__leading,
     .mdc-notched-outline__notch,
     .mdc-notched-outline__trailing {
       border-color: var(--color-danger) !important;
+      border-width: 2px !important;
     }
     .mat-mdc-floating-label {
       color: var(--color-danger) !important;
