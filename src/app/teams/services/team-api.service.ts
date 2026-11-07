@@ -51,7 +51,7 @@ export class TeamApiService {
   /** Creates a new team. */
   createTeam$(name: string, trainer_id: number, pokemon_ids: number[], created_at: string): Observable<Team> {
     const mutation = `
-      mutation CreateTeam($name: String!, $trainer_id: Int!, $pokemon_ids: [Int!]!, $created_at: String!) {
+      mutation CreateTeam($name: String!, $trainer_id: ID!, $pokemon_ids: [Int!]!, $created_at: String!) {
         createTeam(name: $name, trainer_id: $trainer_id, pokemon_ids: $pokemon_ids, created_at: $created_at) {
           id 
           name 

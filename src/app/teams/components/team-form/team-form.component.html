@@ -1,0 +1,82 @@
+<form class="team-form" [formGroup]="form" (ngSubmit)="submit()">
+  <h2 class="team-form__title">New Team</h2>
+
+  <!-- Team name -->
+  <mat-form-field appearance="outline">
+    <mat-label>Team name</mat-label>
+    <input matInput formControlName="name" />
+    @if (nameCtrl.dirty || nameCtrl.touched) {
+      @if (nameCtrl.hasError('required'))   { 
+        <mat-error>Name is required</mat-error> 
+      }
+      @if (nameCtrl.hasError('minlength'))  { 
+        <mat-error>Minimum 3 characters</mat-error> 
+      }
+      @if (nameCtrl.hasError('maxlength'))  { 
+        <mat-error>Maximum 30 characters</mat-error> 
+      }
+      @if (nameCtrl.hasError('nameTaken')) { 
+        <mat-error>This name is already taken</mat-error> 
+      }
+    }
+  </mat-form-field>
+
+  <!-- Trainer dropdown -->
+  <mat-form-field appearance="outline">
+    <mat-label>Trainer</mat-label>
+    <mat-select formControlName="trainer_id">
+      @for (t of trainers(); track t.id) {
+        <mat-option [value]="t.id">{{ t.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <!-- Pokémon autocomplete — all four states required (Task §Non-Negotiable) -->
+  <mat-form-field appearance="outline">
+    <mat-label>Add Pokémon ({{ selectedPokemon().length }}/6)</mat-label>
+    <input matInput
+           [matAutocomplete]="auto"
+           (input)="onAutocompleteInput($any($event.target).value)"
+           placeholder="Search Pokémon…" />
+    <mat-autocomplete #auto (optionSelected)="addPokemon($event.option.value)">
+      <!-- Loading state -->
+      @if (autocompleteLoading()) {
+        <mat-option disabled>Searching…</mat-option>
+      }
+      <!-- Error state -->
+      @if (autocompleteError() && !autocompleteLoading()) {
+        <mat-option disabled class="team-form__autocomplete-error">{{ autocompleteError() }}</mat-option>
+      }
+      <!-- Empty state — only shown after the user has typed ≥2 chars and the search returned nothing -->
+      @if (hasSearched() && !autocompleteLoading() && !autocompleteError() && autocompleteResults().length === 0) {
+        <mat-option disabled>No Pokémon found</mat-option>
+      }
+      <!-- Success state -->
+      @if (!autocompleteLoading() && !autocompleteError()) {
+        @for (p of autocompleteResults(); track p.id) {
+          <mat-option [value]="p">{{ p.name | titlecase }}</mat-option>
+        }
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <!-- Selected Pokémon chips -->
+  <mat-chip-set class="team-form__chips">
+    @for (p of selectedPokemon(); track p.id) {
+      <mat-chip (removed)="removePokemon(p.id)">
+        <img [src]="p.spriteUrl" [alt]="p.name" width="20" height="20" />
+        {{ p.name | titlecase }}
+        <button matChipRemove>✕</button>
+      </mat-chip>
+    }
+  </mat-chip-set>
+
+  @if (selectedPokemon().length === 0) {
+    <p class="team-form__hint">Select at least 1 Pokémon (max 6)</p>
+  }
+
+  <button mat-raised-button color="primary" type="submit"
+          [disabled]="form.invalid || selectedPokemon().length === 0">
+    Create Team
+  </button>
+</form>
