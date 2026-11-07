@@ -43,7 +43,7 @@ export function buildOptimisticTeam(
 
 /**
  * Applies the optimistic add to `state$`, then subscribes to `api$`.
- * On success: replaces the temp entry with the real server response.
+ * On success: replaces the temp entry with the real server response and calls `onSuccess`.
  * On failure: rolls back to `previousTeams` and calls `onError`.
  */
 export function applyOptimisticCreate(
@@ -51,12 +51,14 @@ export function applyOptimisticCreate(
   api$: Observable<Team>,
   { tempId, optimisticTeam, previousTeams }: OptimisticCreatePayload,
   onError?: () => void,
+  onSuccess?: (team: Team) => void,
 ): void {
   state$.next({ ...state$.getValue(), teams: [optimisticTeam, ...previousTeams] });
   api$.subscribe({
     next: (real) => {
       const s = state$.getValue();
       state$.next({ ...s, teams: s.teams.map((t) => (t.id === tempId ? { ...real } : t)) });
+      onSuccess?.(real);
     },
     error: () => {
       state$.next({ ...state$.getValue(), teams: previousTeams });
@@ -119,9 +121,22 @@ export class TeamStore {
     if (this.selectedTeamId() === id) this.selectedTeamId.set(null);
 
     this.api.deleteTeam$(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.snackBar.open('Team deleted successfully.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['snackbar-success'],
+        });
+      },
       error: () => {
         this.patch({ teams: previousTeams });
-        this.snackBar.open('Failed to delete team. Please try again.', 'Dismiss', { duration: 4000 });
+        this.snackBar.open('Failed to delete team. Please try again.', 'Dismiss', {
+          duration: 4000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['snackbar-error'],
+        });
       },
     });
   }
@@ -141,7 +156,18 @@ export class TeamStore {
         takeUntilDestroyed(this.destroyRef)
       ),
       payload,
-      () => this.snackBar.open('Failed to create team. Please try again.', 'Dismiss', { duration: 4000 }),
+      () => this.snackBar.open('Failed to create team. Please try again.', 'Dismiss', {
+        duration: 4000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-error'],
+      }),
+      (created) => this.snackBar.open(`Team "${created.name}" created successfully!`, 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-success'],
+      }),
     );
   }
 }
