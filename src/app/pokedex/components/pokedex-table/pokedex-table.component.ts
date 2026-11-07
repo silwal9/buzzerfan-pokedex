@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -69,12 +69,7 @@ export class PokedexTableComponent implements OnInit {
   private readonly searchInput$ = new Subject<string>();
 
   ngOnInit(): void {
-    this.searchInput$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((term) => { this.store.setSearch(term); return of(null); }),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe();
+    this.setupSearchPipeline();
   }
 
   onSearch(term: string): void { 
@@ -108,5 +103,13 @@ export class PokedexTableComponent implements OnInit {
 
   retry(): void { 
     this.store.retry();
+  }
+
+  private setupSearchPipeline(): void {
+    this.searchInput$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((term) => { this.store.setSearch(term); return of(null); }),
+    ).subscribe();
   }
 }

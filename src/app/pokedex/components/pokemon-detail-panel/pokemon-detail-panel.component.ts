@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, DestroyRef, inject,
+  ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject,
   input, output, signal, computed,
 } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -31,7 +31,7 @@ import { TypeBadgeComponent } from '../../../common/components/type-badge/type-b
     ]),
   ],
 })
-export class PokemonDetailPanelComponent {
+export class PokemonDetailPanelComponent implements OnInit {
   private readonly api        = inject(PokemonApiService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -41,6 +41,9 @@ export class PokemonDetailPanelComponent {
   readonly abilities        = signal<PokemonDetail['abilities']>([]);
   readonly abilitiesLoading = signal(false);
   readonly abilitiesError   = signal<string | null>(null);
+
+  /** Observable stream of pokemon input initialized in injection context */
+  private readonly pokemon$ = toObservable(this.pokemon);
 
   readonly radarOption = computed<EChartsOption>(() => {
     const p = this.pokemon();
@@ -72,8 +75,26 @@ export class PokemonDetailPanelComponent {
     };
   });
 
-  constructor() {
-    toObservable(this.pokemon).pipe(
+  ngOnInit(): void {
+    this.setupAbilitiesStream();
+  }
+
+  retryAbilities(): void {
+    const p = this.pokemon();
+    this.abilitiesLoading.set(true);
+    this.abilitiesError.set(null);
+    this.api.getAbilities$(p.id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (abs) => { this.abilities.set(abs); this.abilitiesLoading.set(false); },
+      error: (err: Error) => { this.abilitiesError.set(err.message); this.abilitiesLoading.set(false); },
+    });
+  }
+
+  close(): void { this.closed.emit(); }
+
+  private setupAbilitiesStream(): void {
+    this.pokemon$.pipe(
       switchMap((p) => {
         this.abilitiesLoading.set(true);
         this.abilitiesError.set(null);
@@ -90,18 +111,4 @@ export class PokemonDetailPanelComponent {
       this.abilitiesLoading.set(false);
     });
   }
-
-  retryAbilities(): void {
-    const p = this.pokemon();
-    this.abilitiesLoading.set(true);
-    this.abilitiesError.set(null);
-    this.api.getAbilities$(p.id).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: (abs) => { this.abilities.set(abs); this.abilitiesLoading.set(false); },
-      error: (err: Error) => { this.abilitiesError.set(err.message); this.abilitiesLoading.set(false); },
-    });
-  }
-
-  close(): void { this.closed.emit(); }
 }

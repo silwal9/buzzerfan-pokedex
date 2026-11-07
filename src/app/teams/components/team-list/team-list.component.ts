@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal,
+  ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal,
 } from '@angular/core';
 import { toObservable, toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -18,7 +18,7 @@ import { getPokemonSpriteUrl } from '../../../common/constants/app.constants';
   styleUrl: './team-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TeamListComponent {
+export class TeamListComponent implements OnInit {
   private readonly store      = inject(TeamStore);
   private readonly pokemonApi = inject(PokemonApiService);
   private readonly destroyRef = inject(DestroyRef);
@@ -35,6 +35,9 @@ export class TeamListComponent {
   readonly selectedTeamPokemon = signal<Pokemon[]>([]);
   readonly pokemonLoading = signal(false);
   readonly pokemonError = signal<string | null>(null);
+
+  /** Observable stream of selectedTeamId initialized in injection context */
+  private readonly selectedTeamId$ = toObservable(this.store.selectedTeamId);
 
   /**
    * Type distribution for the selected team — e.g. "2 Fire, 2 Water, 1 Grass, 1 Electric".
@@ -58,28 +61,8 @@ export class TeamListComponent {
     this.selectedTeamPokemon().reduce((sum, p) => sum + p.stats.total, 0),
   );
 
-  constructor() {
-    // When selectedTeamId changes, cancel any in-flight request (switchMap) and
-    // fetch fresh Pokémon details for the newly selected team.
-    toObservable(this.store.selectedTeamId).pipe(
-      switchMap((id) => {
-        if (!id) { this.selectedTeamPokemon.set([]); this.pokemonError.set(null); return of(null); }
-        const team = this.teams().find((t) => t.id === id);
-        if (!team) { this.selectedTeamPokemon.set([]); this.pokemonError.set(null); return of(null); }
-        this.pokemonLoading.set(true);
-        this.pokemonError.set(null);
-        return this.pokemonApi.getPokemonsByIds$(team.pokemon_ids).pipe(
-          catchError((err: Error) => {
-            this.pokemonError.set(err.message || 'Failed to load Pokémon details');
-            return of(null);
-          }),
-        );
-      }),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe((pokemons) => {
-      if (pokemons !== null) this.selectedTeamPokemon.set(pokemons);
-      this.pokemonLoading.set(false);
-    });
+  ngOnInit(): void {
+    this.setupSelectedTeamListener();
   }
 
   trainerName(trainerId: number): string {
@@ -112,6 +95,28 @@ export class TeamListComponent {
     ).subscribe({
       next: (pokemons) => { this.selectedTeamPokemon.set(pokemons); this.pokemonLoading.set(false); },
       error: (err: Error) => { this.pokemonError.set(err.message || 'Failed to load Pokémon details'); this.pokemonLoading.set(false); },
+    });
+  }
+
+  private setupSelectedTeamListener(): void {
+    this.selectedTeamId$.pipe(
+      switchMap((id) => {
+        if (!id) { this.selectedTeamPokemon.set([]); this.pokemonError.set(null); return of(null); }
+        const team = this.teams().find((t) => t.id === id);
+        if (!team) { this.selectedTeamPokemon.set([]); this.pokemonError.set(null); return of(null); }
+        this.pokemonLoading.set(true);
+        this.pokemonError.set(null);
+        return this.pokemonApi.getPokemonsByIds$(team.pokemon_ids).pipe(
+          catchError((err: Error) => {
+            this.pokemonError.set(err.message || 'Failed to load Pokémon details');
+            return of(null);
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((pokemons) => {
+      if (pokemons !== null) this.selectedTeamPokemon.set(pokemons);
+      this.pokemonLoading.set(false);
     });
   }
 }

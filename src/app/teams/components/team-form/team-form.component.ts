@@ -67,31 +67,7 @@ export class TeamFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.autocompleteInput$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((term) => {
-        if (term.length <= 1) {
-          this.autocompleteResults.set([]);
-          this.autocompleteError.set(null);
-          this.hasSearched.set(false);
-          return of([]);
-        }
-        this.hasSearched.set(true);
-        this.autocompleteLoading.set(true);
-        this.autocompleteError.set(null);
-        return this.pokemonApi.searchPokemons$(term, 8).pipe(
-          catchError((err: Error) => {
-            this.autocompleteError.set(err.message || 'Search failed');
-            return of([]);
-          }),
-        );
-      }),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe((results) => {
-      this.autocompleteResults.set(results);
-      this.autocompleteLoading.set(false);
-    });
+    this.setupAutocompletePipeline();
   }
 
   onAutocompleteInput(value: string): void { 
@@ -119,5 +95,33 @@ export class TeamFormComponent implements OnInit {
     this.form.reset();
     this.selectedPokemon.set([]);
     this.hasSearched.set(false);
+  }
+
+  private setupAutocompletePipeline(): void {
+    this.autocompleteInput$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((term) => {
+        if (term.length <= 1) {
+          this.autocompleteResults.set([]);
+          this.autocompleteError.set(null);
+          this.hasSearched.set(false);
+          return of([]);
+        }
+        this.hasSearched.set(true);
+        this.autocompleteLoading.set(true);
+        this.autocompleteError.set(null);
+        return this.pokemonApi.searchPokemons$(term, 8).pipe(
+          catchError((err: Error) => {
+            this.autocompleteError.set(err.message || 'Search failed');
+            return of([]);
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((results) => {
+      this.autocompleteResults.set(results);
+      this.autocompleteLoading.set(false);
+    });
   }
 }

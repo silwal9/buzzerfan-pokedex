@@ -1,77 +1,23 @@
-import { Injectable, inject, signal, effect, DestroyRef } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { TeamApiService } from '../services/team-api.service';
-import { Team, Trainer } from '../models/team.model';
+import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { BehaviorSubject } from 'rxjs';
+import { OptimisticCreatePayload, TeamState } from '../models/team-state.model';
+import { TeamApiService } from '../services/team-api.service';
+import { applyOptimisticCreate, buildOptimisticTeam } from '../utils/team-optimistic.utils';
 
-export interface TeamState {
-  teams: Team[];
-  trainers: Trainer[];
-  loading: boolean;
-  error: string | null;
-}
+export { applyOptimisticCreate, buildOptimisticTeam };
+export type { OptimisticCreatePayload, TeamState };
 
 export const TEAM_INITIAL_STATE: TeamState = { teams: [], trainers: [], loading: false, error: null };
 
 const SELECTED_TEAM_KEY = 'pokedex_selected_team_id';
 
-export interface OptimisticCreatePayload {
-  tempId: number;
-  optimisticTeam: Team;
-  previousTeams: Team[];
-}
-
-/**
- * Builds the optimistic team object and temp ID.
- * Pure — no side effects, no Angular dependencies.
- */
-export function buildOptimisticTeam(
-  name: string,
-  trainer_id: number,
-  pokemon_ids: number[],
-  currentTeams: Team[],
-  created_at = new Date().toISOString(),
-): OptimisticCreatePayload {
-  const tempId = -Date.now();
-  return {
-    tempId,
-    optimisticTeam: { id: tempId, name, trainer_id, pokemon_ids, created_at, optimistic: true },
-    previousTeams: currentTeams,
-  };
-}
-
-/**
- * Applies the optimistic add to `state$`, then subscribes to `api$`.
- * On success: replaces the temp entry with the real server response and calls `onSuccess`.
- * On failure: rolls back to `previousTeams` and calls `onError`.
- */
-export function applyOptimisticCreate(
-  state$: BehaviorSubject<TeamState>,
-  api$: Observable<Team>,
-  { tempId, optimisticTeam, previousTeams }: OptimisticCreatePayload,
-  onError?: () => void,
-  onSuccess?: (team: Team) => void,
-): void {
-  state$.next({ ...state$.getValue(), teams: [optimisticTeam, ...previousTeams] });
-  api$.subscribe({
-    next: (real) => {
-      const s = state$.getValue();
-      state$.next({ ...s, teams: s.teams.map((t) => (t.id === tempId ? { ...real } : t)) });
-      onSuccess?.(real);
-    },
-    error: () => {
-      state$.next({ ...state$.getValue(), teams: previousTeams });
-      onError?.();
-    },
-  });
-}
-
 @Injectable({ providedIn: 'root' })
 export class TeamStore {
-  private readonly api      = inject(TeamApiService);
+  private readonly api = inject(TeamApiService);
   private readonly snackBar = inject(MatSnackBar);
-  private readonly state$   = new BehaviorSubject<TeamState>({ ...TEAM_INITIAL_STATE });
+  private readonly state$ = new BehaviorSubject<TeamState>({ ...TEAM_INITIAL_STATE });
   private readonly destroyRef = inject(DestroyRef);
 
   readonly state = this.state$.asObservable();

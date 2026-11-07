@@ -1,28 +1,11 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs';
-import { PokemonApiService } from '../services/pokemon-api.service';
-import { Pokemon } from '../models/pokemon.model';
 import { DEFAULT_PAGE_SIZE } from '../../common/constants/app.constants';
+import { PokemonState, SortDirection, SortField } from '../models/pokemon-state.model';
+import { PokemonApiService } from '../services/pokemon-api.service';
 
-export type SortField = 'name' | 'hp' | 'attack' | 'defense' | 'spAtk' | 'spDef' | 'speed' | 'total';
-export type SortDirection = 'asc' | 'desc' | '';
-
-export interface PokemonState {
-  /** Cached pages — key is `${pageSize}-${offset}` */
-  cache: Map<string, Pokemon[]>;
-  /** Non-null when a search or type filter is active */
-  searchResults: Pokemon[] | null;
-  totalCount: number;
-  loading: boolean;
-  error: string | null;
-  page: number;
-  pageSize: number;
-  search: string;
-  typeFilter: string;
-  sortField: SortField;
-  sortDirection: SortDirection;
-}
+export type { PokemonState, SortDirection, SortField };
 
 const INITIAL_STATE: PokemonState = {
   cache: new Map(),
