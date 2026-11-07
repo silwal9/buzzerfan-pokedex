@@ -1,0 +1,8 @@
+.detail-panel {
+  &__ability-name {
+    display: block;
+    font-weight: 600;
+    text-transform: capitalize;
+    margin-bottom: 4px;
+  }
+}

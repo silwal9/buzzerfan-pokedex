@@ -2,10 +2,14 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { PokemonStore } from './state/pokemon.store';
 import { Pokemon } from './models/pokemon.model';
 import { PokedexTableComponent } from './components/pokedex-table/pokedex-table.component';
+import { PokemonDetailPanelComponent } from './components/pokemon-detail-panel/pokemon-detail-panel.component';
 
 @Component({
   selector: 'app-pokedex',
-  imports: [PokedexTableComponent],
+  imports: [
+    PokedexTableComponent,
+    PokemonDetailPanelComponent,
+  ],
   templateUrl: './pokedex.component.html',
   styleUrl: './pokedex.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

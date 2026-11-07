@@ -1,0 +1,44 @@
+<div class="detail-panel" @slideIn>
+  <div class="detail-panel__header">
+    <button class="detail-panel__close" (click)="close()">✕</button>
+    <img [src]="pokemon().spriteUrl" [alt]="pokemon().name" width="96" height="96" />
+    <h2 class="detail-panel__name">{{ pokemon().name | titlecase }}</h2>
+    <div class="detail-panel__types">
+      @for (type of pokemon().types; track type) {
+        <app-type-badge [typeName]="type" />
+      }
+    </div>
+  </div>
+
+  <div class="detail-panel__stats">
+    <p>Height: {{ pokemon().height / 10 }} m</p>
+    <p>Weight: {{ pokemon().weight / 10 }} kg</p>
+  </div>
+
+  <div echarts [options]="radarOption()" class="detail-panel__chart"></div>
+
+  <div class="detail-panel__abilities">
+    <!-- Loading state -->
+    @if (abilitiesLoading()) {
+      <app-skeleton height="80px" />
+    }
+    <!-- Error state with Retry -->
+    @if (abilitiesError() && !abilitiesLoading()) {
+      <p class="detail-panel__error">{{ abilitiesError() }}</p>
+      <button class="detail-panel__retry-btn" (click)="retryAbilities()">Retry</button>
+    }
+    <!-- Success state -->
+    @if (!abilitiesLoading() && !abilitiesError() && abilities().length > 0) {
+      @for (ability of abilities(); track ability.name) {
+        <div class="detail-panel__ability">
+          <span class="detail-panel__ability-name">{{ ability.name }}{{ ability.isHidden ? ' (hidden)' : '' }}</span>
+          <p>{{ ability.shortEffect }}</p>
+        </div>
+      }
+    }
+    <!-- Empty state -->
+    @if (!abilitiesLoading() && !abilitiesError() && abilities().length === 0) {
+      <p class="detail-panel__empty">No abilities found for this Pokémon.</p>
+    }
+  </div>
+</div>

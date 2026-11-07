@@ -1,4 +1,10 @@
 <div class="pokedex">
   <app-pokedex-table
     (pokemonSelected)="onPokemonSelected($event)" />
+
+  @if (panelOpen()) {
+    <app-pokemon-detail-panel
+      [pokemon]="selectedPokemon()!"
+      (closed)="onPanelClose()" />
+  }
 </div>
