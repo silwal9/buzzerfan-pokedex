@@ -75,7 +75,12 @@ export class TeamFormComponent implements OnInit {
     this.autocompleteInput$.next(value); 
   }
 
-  addPokemon(pokemon: Pokemon): void {
+  addPokemon(pokemon: Pokemon, autoInput?: HTMLInputElement): void {
+    if (autoInput) autoInput.value = '';
+    this.autocompleteResults.set([]);
+    this.autocompleteError.set(null);
+    this.hasSearched.set(false);
+
     if (this.selectedPokemon().length >= 6) return;
     if (this.selectedPokemon().some((p) => p.id === pokemon.id)) return;
     this.selectedPokemon.update((list) => [...list, pokemon]);

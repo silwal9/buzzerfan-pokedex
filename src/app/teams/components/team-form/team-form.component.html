@@ -37,7 +37,7 @@
            [matAutocomplete]="auto"
            (input)="onAutocompleteInput($any($event.target).value)"
     />
-    <mat-autocomplete #auto (optionSelected)="addPokemon($event.option.value); autoInput.value = ''">
+    <mat-autocomplete #auto (optionSelected)="addPokemon($event.option.value, autoInput); $event.option.deselect()">
       <!-- Loading state -->
       @if (autocompleteLoading()) {
         <mat-option disabled>Searching…</mat-option>
