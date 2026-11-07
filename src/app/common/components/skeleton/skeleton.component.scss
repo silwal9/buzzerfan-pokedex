@@ -1,0 +1,6 @@
+@use '../../../common/styles/shared' as shared;
+
+.skeleton {
+  border-radius: 4px;
+  @include shared.skeleton-shimmer;
+}
