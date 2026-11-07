@@ -1,0 +1,44 @@
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 24px;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 100;
+
+  &__brand {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    margin-right: auto;
+  }
+
+  &__link {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: color 0.2s;
+
+    &--active,
+    &:hover {
+      color: #fff;
+    }
+
+    &--active {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
+.app-content {
+  margin-top: var(--nav-height);
+  height: calc(100vh - var(--nav-height));
+  overflow: hidden;
+}
