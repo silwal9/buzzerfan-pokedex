@@ -18,6 +18,7 @@ import { PokemonApiService } from '../../../pokedex/services/pokemon-api.service
 import { Pokemon } from '../../../pokedex/models/pokemon.model';
 import { Team, Trainer } from '../../models/team.model';
 import { uniqueNameValidator } from '../../validators/unique-name.validators';
+import { getFriendlyErrorMessage } from '../../../common/utils/error.utils';
 
 @Component({
   selector: 'app-team-form',
@@ -112,8 +113,9 @@ export class TeamFormComponent implements OnInit {
         this.autocompleteLoading.set(true);
         this.autocompleteError.set(null);
         return this.pokemonApi.searchPokemons$(term, 8).pipe(
-          catchError((err: Error) => {
-            this.autocompleteError.set(err.message || 'Search failed');
+          catchError((err: unknown) => {
+            this.autocompleteError.set(getFriendlyErrorMessage(err, 'Search failed. Check your network connection.'));
+            this.autocompleteLoading.set(false);
             return of([]);
           }),
         );
