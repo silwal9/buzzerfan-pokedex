@@ -24,21 +24,22 @@ export interface PokemonDetail extends Pokemon {
   }[];
 }
 
-// Raw shapes from the GraphQL response — transformed in the API service
+// Raw shapes from the GraphQL response — transformed in the API service.
+// In PokéAPI v1beta2, the legacy 'pokemon_v2_' prefix was stripped upstream from all relational types.
 export interface RawPokemon {
   id: number;
   name: string;
   height: number;
   weight: number;
-  pokemon_v2_pokemontypes: { pokemon_v2_type: { name: string } }[];
-  pokemon_v2_pokemonstats: { base_stat: number; pokemon_v2_stat: { name: string } }[];
-  pokemon_v2_pokemonsprites: { sprites: string }[];
+  pokemontypes: { type: { name: string } }[];
+  pokemonstats: { base_stat: number; stat: { name: string } }[];
+  pokemonsprites?: { sprites: string }[];
 }
 
 export interface RawAbility {
-  pokemon_v2_ability: {
+  ability: {
     name: string;
-    pokemon_v2_abilityeffecttexts: { short_effect: string }[];
+    abilityeffecttexts: { short_effect: string }[];
   };
   is_hidden: boolean;
 }

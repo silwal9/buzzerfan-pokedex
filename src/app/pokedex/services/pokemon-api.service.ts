@@ -11,8 +11,9 @@ import { Pokemon, PokemonDetail, RawAbility, RawPokemon } from '../models/pokemo
 
 function mapRawPokemon(raw: RawPokemon): Pokemon {
   const statsMap: Record<string, number> = {};
-  for (const s of raw.pokemon_v2_pokemonstats) {
-    statsMap[s.pokemon_v2_stat.name] = s.base_stat;
+  // In PokéAPI v1beta2, 'pokemon_v2_pokemonstats' is renamed to 'pokemonstats' and 'pokemon_v2_stat' to 'stat'
+  for (const s of raw.pokemonstats) {
+    statsMap[s.stat.name] = s.base_stat;
   }
   const hp = statsMap['hp'] ?? 0;
   const attack = statsMap['attack'] ?? 0;
@@ -26,7 +27,8 @@ function mapRawPokemon(raw: RawPokemon): Pokemon {
     name: raw.name,
     height: raw.height,
     weight: raw.weight,
-    types: raw.pokemon_v2_pokemontypes.map((t) => t.pokemon_v2_type.name),
+    // In PokéAPI v1beta2, 'pokemon_v2_pokemontypes' is renamed to 'pokemontypes' and 'pokemon_v2_type' to 'type'
+    types: raw.pokemontypes.map((t) => t.type.name),
     stats: { hp, attack, defense, spAtk, spDef, speed, total: hp + attack + defense + spAtk + spDef + speed },
     spriteUrl: getPokemonSpriteUrl(raw.id),
   };
@@ -38,39 +40,41 @@ function mapRawPokemon(raw: RawPokemon): Pokemon {
 export class PokemonApiService {
   private readonly gql = inject(GraphqlService);
 
+  // Updated for PokéAPI v1beta2 schema where the 'pokemon_v2_' prefix is stripped from relations
   private readonly pokemonFields = `
     id 
     name 
     height 
     weight
-    pokemon_v2_pokemontypes { 
-      pokemon_v2_type { 
+    pokemontypes { 
+      type { 
         name 
       } 
     }
-    pokemon_v2_pokemonstats { 
+    pokemonstats { 
       base_stat 
-      pokemon_v2_stat { 
+      stat { 
         name 
       } 
     }
-    pokemon_v2_pokemonsprites { 
+    pokemonsprites { 
       sprites 
     }
   `;
 
   /** Fetches a page of Pokémon (Task §GraphQL APIs query). Retries up to RETRY_COUNT times on failure. */
   getPokemons$(limit: number, offset: number): Observable<Pokemon[]> {
+    // In PokéAPI v1beta2, root query uses 'pokemon' instead of legacy 'pokemon_v2_pokemon'
     const query = `
       query GetPokemon($limit: Int, $offset: Int) {
-        pokemon_v2_pokemon(limit: $limit, offset: $offset) { ${this.pokemonFields} }
+        pokemon(limit: $limit, offset: $offset) { ${this.pokemonFields} }
       }
     `;
     return this.gql
-      .query<{ pokemon_v2_pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, { limit, offset })
+      .query<{ pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, { limit, offset })
       .pipe(
         retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
-        map((data) => data.pokemon_v2_pokemon.map(mapRawPokemon)),
+        map((data) => data.pokemon.map(mapRawPokemon)),
       );
   }
 
@@ -86,22 +90,24 @@ export class PokemonApiService {
       whereConditions['name'] = { _ilike: `%${name}%` };
     }
     if (type) {
-      whereConditions['pokemon_v2_pokemontypes'] = {
-        pokemon_v2_type: { name: { _eq: type } },
+      // In PokéAPI v1beta2, relational filter drops the 'pokemon_v2_' prefix: pokemontypes -> type
+      whereConditions['pokemontypes'] = {
+        type: { name: { _eq: type } },
       };
     }
 
+    // In PokéAPI v1beta2, root queries are 'pokemon' and 'pokemon_aggregate', using 'pokemon_bool_exp'
     const query = `
-      query SearchPokemon($where: pokemon_v2_pokemon_bool_exp, $limit: Int, $offset: Int) {
-        pokemon_v2_pokemon(where: $where, limit: $limit, offset: $offset) { ${this.pokemonFields} }
-        pokemon_v2_pokemon_aggregate(where: $where) { aggregate { count } }
+      query SearchPokemon($where: pokemon_bool_exp, $limit: Int, $offset: Int) {
+        pokemon(where: $where, limit: $limit, offset: $offset) { ${this.pokemonFields} }
+        pokemon_aggregate(where: $where) { aggregate { count } }
       }
     `;
 
     return this.gql
       .query<{
-        pokemon_v2_pokemon: RawPokemon[];
-        pokemon_v2_pokemon_aggregate: { aggregate: { count: number } };
+        pokemon: RawPokemon[];
+        pokemon_aggregate: { aggregate: { count: number } };
       }>(POKEAPI_GRAPHQL_URL, query, {
         where: whereConditions,
         limit,
@@ -110,8 +116,8 @@ export class PokemonApiService {
       .pipe(
         retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
         map((data) => ({
-          pokemons: data.pokemon_v2_pokemon.map(mapRawPokemon),
-          totalCount: data.pokemon_v2_pokemon_aggregate.aggregate.count,
+          pokemons: data.pokemon.map(mapRawPokemon),
+          totalCount: data.pokemon_aggregate.aggregate.count,
         })),
       );
   }
@@ -123,40 +129,42 @@ export class PokemonApiService {
 
   /** Fetches the total Pokémon count once (for the paginator). */
   getTotalCount$(): Observable<number> {
+    // In PokéAPI v1beta2, aggregate query is 'pokemon_aggregate' instead of 'pokemon_v2_pokemon_aggregate'
     const query = `
       query GetTotalCount {
-        pokemon_v2_pokemon_aggregate { aggregate { count } }
+        pokemon_aggregate { aggregate { count } }
       }
     `;
     return this.gql
-      .query<{ pokemon_v2_pokemon_aggregate: { aggregate: { count: number } } }>(POKEAPI_GRAPHQL_URL, query)
+      .query<{ pokemon_aggregate: { aggregate: { count: number } } }>(POKEAPI_GRAPHQL_URL, query)
       .pipe(
         retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
-        map((data) => data.pokemon_v2_pokemon_aggregate.aggregate.count),
+        map((data) => data.pokemon_aggregate.aggregate.count),
       );
   }
 
   /** Fetches abilities for one Pokémon (used by the detail panel). */
   getAbilities$(pokemonId: number): Observable<PokemonDetail['abilities']> {
+    // In PokéAPI v1beta2, 'pokemonability', 'ability', and 'abilityeffecttexts' drop 'pokemon_v2_' prefixes
     const query = `
       query GetAbilities($pokemonId: Int) {
-        pokemon_v2_pokemonability(where: { pokemon_id: { _eq: $pokemonId } }) {
-          pokemon_v2_ability {
+        pokemonability(where: { pokemon_id: { _eq: $pokemonId } }) {
+          ability {
             name
-            pokemon_v2_abilityeffecttexts(where: { language_id: { _eq: 9 } }) { short_effect }
+            abilityeffecttexts(where: { language_id: { _eq: 9 } }) { short_effect }
           }
           is_hidden
         }
       }
     `;
     return this.gql
-      .query<{ pokemon_v2_pokemonability: RawAbility[] }>(POKEAPI_GRAPHQL_URL, query, { pokemonId })
+      .query<{ pokemonability: RawAbility[] }>(POKEAPI_GRAPHQL_URL, query, { pokemonId })
       .pipe(
         retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
         map((data) =>
-          data.pokemon_v2_pokemonability.map((a) => ({
-            name: a.pokemon_v2_ability.name,
-            shortEffect: a.pokemon_v2_ability.pokemon_v2_abilityeffecttexts[0]?.short_effect ?? '',
+          data.pokemonability.map((a) => ({
+            name: a.ability.name,
+            shortEffect: a.ability.abilityeffecttexts[0]?.short_effect ?? '',
             isHidden: a.is_hidden,
           })),
         ),
@@ -165,9 +173,10 @@ export class PokemonApiService {
 
   /** Fetches a set of Pokémon by their IDs in one query — used by the team expanded view. */
   getPokemonsByIds$(ids: number[]): Observable<Pokemon[]> {
+    // In PokéAPI v1beta2, root query uses 'pokemon' instead of 'pokemon_v2_pokemon'
     const query = `
       query GetPokemonsByIds($ids: [Int!]) {
-        pokemon_v2_pokemon(where: {
+        pokemon(where: {
           id: { _in: $ids }
         }) {
           ${this.pokemonFields}
@@ -175,10 +184,10 @@ export class PokemonApiService {
       }
     `;
     return this.gql
-      .query<{ pokemon_v2_pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, { ids })
+      .query<{ pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, { ids })
       .pipe(
         retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
-        map((data) => data.pokemon_v2_pokemon.map(mapRawPokemon)),
+        map((data) => data.pokemon.map(mapRawPokemon)),
       );
   }
 }

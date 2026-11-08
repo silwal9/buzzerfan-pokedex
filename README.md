@@ -39,9 +39,10 @@ npm test
 
 ## GraphQL Endpoints
 
-- **Public PokéAPI GraphQL**: `https://beta.pokeapi.co/graphql/v1beta`
-  - Interactive Playground: [https://beta.pokeapi.co/graphql/console](https://beta.pokeapi.co/graphql/console)
+- **Public PokéAPI GraphQL**: `https://graphql.pokeapi.co/v1beta2`
+  - Interactive Playground: [https://graphql.pokeapi.co/v1beta2/console/](https://graphql.pokeapi.co/v1beta2/console/)
   - Provides paginated Pokémon listings, type filtering, debounced name search, and ability details.
+  - *Upstream v1beta2 Migration Note*: Migrated from the deprecated `https://beta.pokeapi.co/graphql/v1beta` endpoint (which returns HTTP 401 Unauthorized upstream). PokéAPI `v1beta2` strips the legacy `pokemon_v2_` table and relation prefixes (e.g. `pokemon`, `pokemontypes`, `pokemonstats`, `pokemonability`).
 - **Local Teams Mock Server**: `http://localhost:4000/graphql`
   - Interactive GraphiQL IDE: [http://localhost:4000/graphql](http://localhost:4000/graphql)
   - Provides team CRUD mutations (`createTeam`, `removeTeam`) and queries (`allTeams`, `allTrainers`).
@@ -62,7 +63,7 @@ The application uses custom `BehaviorSubject`-based stores (`PokemonStore`, `Tea
 Instead of bringing in Apollo Client (whose internal `InMemoryCache` would conflict with our custom BehaviorSubject store), all GraphQL requests are executed through a lightweight `GraphqlService` built on Angular's native `HttpClient`. This keeps the bundle small and gives full control over the RxJS stream pipeline and retry handling.
 
 ### 3. Pagination & Client-Side Stat Sorting
-PokéAPI's Hasura endpoint does not support `order_by` sorting on deep nested relations (such as `pokemon_v2_pokemonstats.base_stat`). In production systems with 1,000+ items, downloading unpaginated datasets to memory for client-side sorting degrades initial page load performance and network bandwidth. Therefore, pagination is handled via GraphQL `$limit` and `$offset` parameters, while column sorting (by HP, Attack, Defense, Speed, etc.) is performed client-side on the active dataset slice. Zero unpaginated bulk downloads are performed over the wire.
+PokéAPI's Hasura endpoint does not support `order_by` sorting on deep nested relations (such as `pokemonstats.base_stat` / legacy `pokemon_v2_pokemonstats.base_stat`). In production systems with 1,000+ items, downloading unpaginated datasets to memory for client-side sorting degrades initial page load performance and network bandwidth. Therefore, pagination is handled via GraphQL `$limit` and `$offset` parameters, while column sorting (by HP, Attack, Defense, Speed, etc.) is performed client-side on the active dataset slice. Zero unpaginated bulk downloads are performed over the wire.
 
 ### 4. Optimistic UI Mutations & Rollback
 Creating or deleting a team updates the local state immediately:
@@ -77,7 +78,7 @@ Creating or deleting a team updates the local state immediately:
 - **Toast Feedback**: Customized top-right `MatSnackBar` notifications with emerald green (success) and crimson red (failure) themes for team creations and deletions.
 
 ### 6. Deterministic Sprite URLs
-The raw PokéAPI GraphQL response returns `pokemon_v2_pokemonsprites.sprites` as a stringified JSON object containing over 30 sprite variant keys. To keep the mapping fast and resilient against upstream schema changes, sprite URLs are constructed deterministically from the Pokémon ID:
+The raw PokéAPI GraphQL response returns `pokemonsprites.sprites` (legacy `pokemon_v2_pokemonsprites.sprites`) as a stringified JSON object containing over 30 sprite variant keys. To keep the mapping fast and resilient against upstream schema changes, sprite URLs are constructed deterministically from the Pokémon ID:
 `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
 
 ### 7. Reactive Forms & Async Uniqueness Validation

@@ -1,5 +1,10 @@
-/** PokéAPI public GraphQL endpoint — no auth required */
-export const POKEAPI_GRAPHQL_URL = 'https://beta.pokeapi.co/graphql/v1beta';
+/**
+ * PokéAPI public GraphQL endpoint.
+ * Note: The legacy endpoint 'https://beta.pokeapi.co/graphql/v1beta' was deprecated upstream
+ * by PokéAPI (returning HTTP 401 Unauthorized). The active production endpoint is
+ * 'https://graphql.pokeapi.co/v1beta2', which also cleans up schema prefixes (stripping 'pokemon_v2_').
+ */
+export const POKEAPI_GRAPHQL_URL = 'https://graphql.pokeapi.co/v1beta2';
 
 /** Local mock server endpoint — run with: npx json-graphql-server db.js --port 4000 */
 export const MOCK_SERVER_URL = 'http://localhost:4000/graphql';
