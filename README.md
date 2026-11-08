@@ -4,6 +4,7 @@ A responsive single-page Angular application for browsing Pokémon, inspecting d
 
 ## Demo:
 https://github.com/user-attachments/assets/6ddd8356-b2b4-4896-a018-c49593223534
+
 ---
 
 ## Setup & Running
