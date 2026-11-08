@@ -34,6 +34,8 @@
     <mat-label>Add Pokémon ({{ selectedPokemon().length }}/6)</mat-label>
     <input matInput
            #autoInput
+           [disabled]="selectedPokemon().length >= 6"
+           [placeholder]="selectedPokemon().length >= 6 ? 'Team is full (max 6)' : 'Search Pokémon…'"
            [matAutocomplete]="auto"
            (input)="onAutocompleteInput($any($event.target).value)"
     />

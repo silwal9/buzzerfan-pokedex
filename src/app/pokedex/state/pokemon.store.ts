@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { DEFAULT_PAGE_SIZE } from '../../common/constants/app.constants';
 import { PokemonState, SortDirection, SortField } from '../models/pokemon-state.model';
 import { PokemonApiService } from '../services/pokemon-api.service';
@@ -29,6 +29,7 @@ export class PokemonStore {
   private readonly api = inject(PokemonApiService);
   private readonly state$ = new BehaviorSubject<PokemonState>({ ...INITIAL_STATE, cache: new Map() });
   private readonly destroyRef = inject(DestroyRef);
+  private searchSub?: Subscription;
 
   readonly state = this.state$.asObservable();
 
@@ -44,6 +45,7 @@ export class PokemonStore {
   loadTotalCount(): void {
     this.api.getTotalCount$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (totalCount) => this.patch({ totalCount }),
+      error: (err: unknown) => this.patch({ error: getFriendlyErrorMessage(err, 'Failed to connect to PokéAPI service.') }),
     });
   }
 
@@ -120,8 +122,9 @@ export class PokemonStore {
   }
 
   private executeCombinedFilter(name: string, type: string, limit: number, offset: number): void {
+    this.searchSub?.unsubscribe();
     this.patch({ loading: true, error: null });
-    this.api.searchPokemons$(name, limit, offset, type || undefined).pipe(
+    this.searchSub = this.api.searchPokemons$(name, limit, offset, type || undefined).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (searchResults) => this.patch({ loading: false, searchResults }),

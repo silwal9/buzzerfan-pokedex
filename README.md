@@ -62,7 +62,7 @@ The application uses custom `BehaviorSubject`-based stores (`PokemonStore`, `Tea
 Instead of bringing in Apollo Client (whose internal `InMemoryCache` would conflict with our custom BehaviorSubject store), all GraphQL requests are executed through a lightweight `GraphqlService` built on Angular's native `HttpClient`. This keeps the bundle small and gives full control over the RxJS stream pipeline and retry handling.
 
 ### 3. Pagination & Client-Side Stat Sorting
-PokéAPI's Hasura endpoint does not support `order_by` sorting on deep nested relations (such as `pokemon_v2_pokemonstats.base_stat`). Therefore, pagination is handled via GraphQL `$limit` and `$offset` parameters, while column sorting (by HP, Attack, Defense, Speed, etc.) is performed client-side on the active page dataset.
+PokéAPI's Hasura endpoint does not support `order_by` sorting on deep nested relations (such as `pokemon_v2_pokemonstats.base_stat`). In production systems with 1,000+ items, downloading unpaginated datasets to memory for client-side sorting degrades initial page load performance and network bandwidth. Therefore, pagination is handled via GraphQL `$limit` and `$offset` parameters, while column sorting (by HP, Attack, Defense, Speed, etc.) is performed client-side on the active dataset slice. Zero unpaginated bulk downloads are performed over the wire.
 
 ### 4. Optimistic UI Mutations & Rollback
 Creating or deleting a team updates the local state immediately:

@@ -52,6 +52,7 @@ export class TeamStore {
   loadTrainers(): void {
     this.api.getTrainers$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (trainers) => this.patch({ trainers }),
+      error: (err: unknown) => this.patch({ error: getFriendlyErrorMessage(err, 'Failed to load trainers. Is the mock server running on port 4000?') }),
     });
   }
 

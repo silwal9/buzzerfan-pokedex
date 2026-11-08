@@ -19,6 +19,7 @@ import { Pokemon } from '../../../pokedex/models/pokemon.model';
 import { Team, Trainer } from '../../models/team.model';
 import { uniqueNameValidator } from '../../validators/unique-name.validators';
 import { getFriendlyErrorMessage } from '../../../common/utils/error.utils';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-team-form',
@@ -35,6 +36,7 @@ export class TeamFormComponent implements OnInit {
   private readonly store      = inject(TeamStore);
   private readonly pokemonApi = inject(PokemonApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly snackBar   = inject(MatSnackBar);
 
   readonly trainers            = toSignal(this.store.state.pipe(map((s) => s.trainers)), { initialValue: [] as Trainer[] });
   private readonly teams       = toSignal(this.store.state.pipe(map((s) => s.teams)),    { initialValue: [] as Team[] });
@@ -81,8 +83,14 @@ export class TeamFormComponent implements OnInit {
     this.autocompleteError.set(null);
     this.hasSearched.set(false);
 
-    if (this.selectedPokemon().length >= 6) return;
-    if (this.selectedPokemon().some((p) => p.id === pokemon.id)) return;
+    if (this.selectedPokemon().length >= 6) {
+      this.snackBar.open('Team is full (maximum 6 Pokémon allowed)', 'Close', { duration: 3000 });
+      return;
+    }
+    if (this.selectedPokemon().some((p) => p.id === pokemon.id)) {
+      this.snackBar.open(`${pokemon.name} is already in your team`, 'Close', { duration: 3000 });
+      return;
+    }
     this.selectedPokemon.update((list) => [...list, pokemon]);
   }
 

@@ -1,10 +1,9 @@
 import {
   ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { PokemonStore } from '../../state/pokemon.store';
 import { PokemonSelectors } from '../../state/pokemon.selectors';
 import { Pokemon } from '../../models/pokemon.model';
@@ -109,7 +108,8 @@ export class PokedexTableComponent implements OnInit {
     this.searchInput$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap((term) => { this.store.setSearch(term); return of(null); }),
+      tap((term) => this.store.setSearch(term)),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe();
   }
 }
