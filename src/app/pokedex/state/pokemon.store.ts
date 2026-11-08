@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, EMPTY, Subject, catchError, switchMap } from 'rxjs';
 import { DEFAULT_PAGE_SIZE } from '../../common/constants/app.constants';
 import { PokemonState, SortDirection, SortField } from '../models/pokemon-state.model';
 import { PokemonApiService } from '../services/pokemon-api.service';
@@ -29,8 +29,25 @@ export class PokemonStore {
   private readonly api = inject(PokemonApiService);
   private readonly state$ = new BehaviorSubject<PokemonState>({ ...INITIAL_STATE, cache: new Map() });
   private readonly destroyRef = inject(DestroyRef);
+  private readonly filterQuery$ = new Subject<{ name: string; type: string; limit: number; offset: number }>();
 
   readonly state = this.state$.asObservable();
+
+  constructor() {
+    this.filterQuery$.pipe(
+      switchMap(({ name, type, limit, offset }) =>
+        this.api.searchPokemons$(name, limit, offset, type || undefined).pipe(
+          catchError((err: unknown) => {
+            this.patch({ loading: false, error: getFriendlyErrorMessage(err, 'Filter failed. Please try again.') });
+            return EMPTY;
+          }),
+        ),
+      ),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(({ pokemons, totalCount }) => {
+      this.patch({ loading: false, searchResults: pokemons, filteredCount: totalCount });
+    });
+  }
 
   private get snap(): PokemonState {
     return this.state$.getValue();
@@ -117,16 +134,12 @@ export class PokemonStore {
 
   retry(): void {
     this.patch({ error: null });
+    if (this.snap.totalCount === 0) this.loadTotalCount();
     this.loadPage();
   }
 
   private executeCombinedFilter(name: string, type: string, limit: number, offset: number): void {
     this.patch({ loading: true, error: null });
-    this.api.searchPokemons$(name, limit, offset, type || undefined).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: (searchResults) => this.patch({ loading: false, searchResults }),
-      error: (err: unknown) => this.patch({ loading: false, error: getFriendlyErrorMessage(err, 'Filter failed. Please try again.') }),
-    });
+    this.filterQuery$.next({ name, type, limit, offset });
   }
 }

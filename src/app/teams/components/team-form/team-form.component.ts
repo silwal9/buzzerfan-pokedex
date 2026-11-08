@@ -136,6 +136,7 @@ export class TeamFormComponent implements OnInit {
         this.autocompleteLoading.set(true);
         this.autocompleteError.set(null);
         return this.pokemonApi.searchPokemons$(term, 8).pipe(
+          map((res) => res.pokemons),
           catchError((err: unknown) => {
             this.autocompleteError.set(getFriendlyErrorMessage(err, 'Search failed. Check your network connection.'));
             this.autocompleteLoading.set(false);

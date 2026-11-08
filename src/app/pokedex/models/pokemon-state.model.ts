@@ -8,6 +8,7 @@ export interface PokemonState {
   cache: Map<string, Pokemon[]>;
   /** Non-null when a search or type filter is active */
   searchResults: Pokemon[] | null;
+  filteredCount?: number;
   totalCount: number;
   loading: boolean;
   error: string | null;

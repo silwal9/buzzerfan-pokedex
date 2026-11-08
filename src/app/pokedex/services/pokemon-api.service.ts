@@ -75,7 +75,12 @@ export class PokemonApiService {
   }
 
   /** Searches by name and/or filters by type. Retries on failure. */
-  searchPokemons$(name: string, limit = 50, offset = 0, type?: string): Observable<Pokemon[]> {
+  searchPokemons$(
+    name: string,
+    limit = 50,
+    offset = 0,
+    type?: string,
+  ): Observable<{ pokemons: Pokemon[]; totalCount: number }> {
     const whereConditions: Record<string, any> = {};
     if (name) {
       whereConditions['name'] = { _ilike: `%${name}%` };
@@ -89,23 +94,30 @@ export class PokemonApiService {
     const query = `
       query SearchPokemon($where: pokemon_v2_pokemon_bool_exp, $limit: Int, $offset: Int) {
         pokemon_v2_pokemon(where: $where, limit: $limit, offset: $offset) { ${this.pokemonFields} }
+        pokemon_v2_pokemon_aggregate(where: $where) { aggregate { count } }
       }
     `;
 
     return this.gql
-      .query<{ pokemon_v2_pokemon: RawPokemon[] }>(POKEAPI_GRAPHQL_URL, query, {
+      .query<{
+        pokemon_v2_pokemon: RawPokemon[];
+        pokemon_v2_pokemon_aggregate: { aggregate: { count: number } };
+      }>(POKEAPI_GRAPHQL_URL, query, {
         where: whereConditions,
         limit,
         offset,
       })
       .pipe(
         retry({ count: RETRY_COUNT, delay: RETRY_DELAY_MS }),
-        map((data) => data.pokemon_v2_pokemon.map(mapRawPokemon)),
+        map((data) => ({
+          pokemons: data.pokemon_v2_pokemon.map(mapRawPokemon),
+          totalCount: data.pokemon_v2_pokemon_aggregate.aggregate.count,
+        })),
       );
   }
 
   /** Filters by type with pagination. Retries on failure. */
-  filterByType$(type: string, limit = 50, offset = 0): Observable<Pokemon[]> {
+  filterByType$(type: string, limit = 50, offset = 0): Observable<{ pokemons: Pokemon[]; totalCount: number }> {
     return this.searchPokemons$('', limit, offset, type);
   }
 

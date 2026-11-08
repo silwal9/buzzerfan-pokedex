@@ -58,7 +58,12 @@ export class TeamStore {
 
   selectTeam(id: number | null): void { this.selectedTeamId.set(id); }
 
-  retry(): void { this.loadTeams(); }
+  retry(): void {
+    this.loadTeams();
+    if (this.snap.trainers.length === 0) {
+      this.loadTrainers();
+    }
+  }
 
   /**
    * Optimistic delete — removes the team immediately. Rolls back on failure.

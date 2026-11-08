@@ -48,7 +48,7 @@ export class PokemonSelectors {
   readonly loading$   = this.state$.pipe(map((s) => s.loading), distinctUntilChanged());
   readonly error$     = this.state$.pipe(map((s) => s.error), distinctUntilChanged());
   readonly totalCount$ = this.state$.pipe(
-    map((s) => (s.searchResults !== null ? s.searchResults.length : s.totalCount)),
+    map((s) => (s.searchResults !== null ? (s.filteredCount ?? s.searchResults.length) : s.totalCount)),
     distinctUntilChanged(),
     shareReplay(1),
   );
