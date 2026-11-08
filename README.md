@@ -3,7 +3,7 @@
 A responsive single-page Angular application for browsing Pokémon, inspecting detailed base stats with interactive radar charts, and building custom teams with optimistic updates and GraphQL.
 
 ## Demo:
-https://github.com/user-attachments/assets/bb82d04c-6046-42c0-a50c-810b3a79e5ab
+https://github.com/user-attachments/assets/0c8d7c57-af71-4ce2-bfe1-a3f9028201bc
 
 ---
 
