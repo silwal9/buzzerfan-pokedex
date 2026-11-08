@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PokemonStore } from '../../state/pokemon.store';
 import { PokemonSelectors } from '../../state/pokemon.selectors';
 import { Pokemon } from '../../models/pokemon.model';
@@ -108,8 +108,7 @@ export class PokedexTableComponent implements OnInit {
     this.searchInput$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      tap((term) => this.store.setSearch(term)),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe();
+    ).subscribe((term) => this.store.setSearch(term));
   }
 }

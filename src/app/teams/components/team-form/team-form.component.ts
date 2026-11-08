@@ -84,11 +84,21 @@ export class TeamFormComponent implements OnInit {
     this.hasSearched.set(false);
 
     if (this.selectedPokemon().length >= 6) {
-      this.snackBar.open('Team is full (maximum 6 Pokémon allowed)', 'Close', { duration: 3000 });
+      this.snackBar.open('Team is full (maximum 6 Pokémon allowed)', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-error'],
+      });
       return;
     }
     if (this.selectedPokemon().some((p) => p.id === pokemon.id)) {
-      this.snackBar.open(`${pokemon.name} is already in your team`, 'Close', { duration: 3000 });
+      this.snackBar.open(`${pokemon.name} is already in your team`, 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-error'],
+      });
       return;
     }
     this.selectedPokemon.update((list) => [...list, pokemon]);
